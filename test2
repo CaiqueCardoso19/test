@@ -1,0 +1,645 @@
+//app.routes.ts
+
+import { RouterModule, Routes } from '@angular/router';
+import { RepositoryListComponent } from './components/repository-list/repository-list.component';
+import { AppComponent } from './app.component';
+
+const appRoutes: Routes = [
+    {
+        path: '',
+        component: AppComponent
+    },
+    {
+        path: 'repository-list',
+        component: RepositoryListComponent
+    },
+    {
+        path: '**',
+        component: AppComponent
+    }
+];
+
+export const Router = RouterModule.forRoot(appRoutes);
+
+-
+
+//app.module.ts
+
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
+import { MatCardModule } from '@angular/material/card';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
+import { AppComponent } from './app.component';
+import { HeaderModule } from './components/header/header.module';
+import { RepositoryListModule } from './components/repository-list/repository-list.module';
+import { PerfilPresentarionModule } from './components/perfil-presentation/perfil-presentation.module';
+import { ServiceUtil } from './shared/service';
+import { Utils } from './utils/utils.service';
+import { Router } from './app.router';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+  ],
+  imports: [
+    RepositoryListModule,
+    HeaderModule,
+    PerfilPresentarionModule,
+    HttpModule,
+    HttpClientModule,
+    BrowserModule,
+    FormsModule,
+    MatCardModule,
+    MatInputModule,
+    BrowserAnimationsModule,
+    MatButtonModule,
+    Router
+  ],
+  providers: [
+    ServiceUtil,
+    Utils
+  ],
+  schemas: [ CUSTOM_ELEMENTS_SCHEMA ],
+  bootstrap: [ AppComponent ]
+})
+export class AppModule { }
+
+- 
+
+app.components.ts
+
+-- 
+
+import { Component, Inject, OnInit  } from '@angular/core';
+import { Console } from '@angular/core/src/console';
+
+import { Observable } from 'rxjs/Observable';
+import { ServiceUtil } from './shared/service';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  search: String = 'caiquecardoso19';
+  user: Array<Object>;
+  repositorys: Array<Object> = [];
+  repository: any;
+
+  constructor(private service: ServiceUtil) { }
+
+  private getUser (e) {
+
+    this.service
+        .getUser(this.search)
+        .subscribe(data => {
+          this.user = data;
+          return this.getRepositorys(data.repos_url);
+        });
+  }
+
+  private getRepositorys(url) {
+
+    this.service
+        .getRepositorys(url)
+        .subscribe((response) => this.repositorys = response);
+  }
+
+}
+
+-
+
+app.component.spec.ts
+
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Http, HttpModule } from '@angular/http';
+import { TestBed, async } from '@angular/core/testing';
+
+import { AppComponent } from './app.component';
+import { ServiceUtil } from './shared/service';
+
+
+describe('AppComponent', () => {
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [
+        AppComponent
+      ],
+      imports: [ FormsModule, HttpModule ],
+      schemas: [ NO_ERRORS_SCHEMA ],
+      providers: [ ServiceUtil ]
+    }).compileComponents();
+  }));
+
+  it('should create the app', async(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.debugElement.componentInstance;
+    expect(app).toBeTruthy();
+  }));
+
+  // it(`should have as title 'app'`, async(() => {
+  //   const fixture = TestBed.createComponent(AppComponent);
+  //   const app = fixture.debugElement.componentInstance;
+  //   expect(app.title).toEqual('app');
+  // }));
+
+  // it('should have a search', async() => {
+  //   const fixture = TestBed.createComponent(AppComponent);
+  //   const app = fixture.debugElement.componentInstance;
+  //   expect(app.search);
+  // });
+
+  // it('should render title in a h1 tag', async(() => {
+  //   const fixture = TestBed.createComponent(AppComponent);
+  //   fixture.detectChanges();
+  //   const compiled = fixture.debugElement.nativeElement;
+  //   expect(compiled.querySelector('h1').textContent).toContain('Welcome to app!');
+  // }));
+});
+
+
+- 
+
+app.component.html
+
+<header>
+  <app-header></app-header>
+</header>
+
+<section>
+  <mat-card>
+    <form class="left" #searchForm="ngForm" (submit)="getUser(); $event.preventDefault()">
+      <mat-form-field>
+        <input  type="text"
+                name="search"
+                placeholder="What user are you looking for?"
+                [(ngModel)]="search"
+                [value]="search"
+                matInput>
+      </mat-form-field>
+      <button type="submit" class="button-black m-l-15" mat-button>
+        <span>Search</span>
+      </button>
+    </form>
+  </mat-card>
+</section>
+
+<section>
+  <app-perfil-presentation [user]="user"></app-perfil-presentation>
+</section>
+
+<section>
+  <app-repository-list [repositorys]="repositorys"></app-repository-list>
+</section>
+<router-outlet></router-outlet>
+
+--
+
+app.components.css
+
+
+  body {
+    font-family: Roboto,"Helvetica Neue",sans-serif;
+  }
+  .left {
+    text-align: left
+  }
+
+  .photo-space {
+    width: 150px;
+    height: 100%;
+  }
+
+  section {
+
+    margin-top: 10px;
+  }
+
+  .m-l-15 {
+    margin-left: 15px;
+  }
+
+  .git-hub-img-width {
+    width: 26px;
+    height: 26px;
+  }
+
+  [mat-button] {
+    background-color: rgb(26, 25, 25);
+    color: rgba(255,255,255,.87);
+  }
+
+  p span {
+    display: block;
+  }
+
+  .profile-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: rgb(26, 25, 25);
+  }
+
+  .radius-2 {
+    border-radius: 6px;
+  }
+
+  .m-t-15-b-10 {
+    margin: 15px 0px 10px 0px;
+  }
+
+  .star-icon {
+    color: #673ab7;
+  }
+
+  .star-count {
+    font-size: 13px;
+    padding: 5px 5px 2px;
+  }
+
+  .bio {
+    text-align: center;
+    padding: 10px;
+  }
+
+--
+
+utils/utils.service.ts
+
+import { Injectable } from '@angular/core';
+
+@Injectable()
+export class Utils {
+  public getOrderOfArraysFromObject(object: any, value: String) {
+
+    return this.getListOfItemsOrderedByLast(object, value);
+  }
+
+  private getListOfItemsOrderedByLast (object: any, value: String) {
+
+    return object.sort((a, b) => (a[`${value}`] > b[`${value}`]) ? 1 : ((b[`${value}`] > a[`${value}`]) ? -1 : 0)).reverse();
+  }
+
+  private getListOfItemsOrderedByFirst (object: any, value: String) {
+
+    return object.sort((a, b) => (a[`${value}`] > b[`${value}`]) ? 1 : ((b[`${value}`] > a[`${value}`]) ? -1 : 0));
+  }
+}
+
+---
+
+shared/service.ts
+-- 
+import { Injectable } from '@angular/core';
+import { Http, Response } from '@angular/http';
+import 'rxjs/add/operator/map';
+
+@Injectable()
+export class ServiceUtil {
+
+  path: String = 'https://api.github.com/users/';
+
+  constructor (private http: Http) {}
+
+  getUser(user) {
+    return this.http
+                .get(`${this.path}${user}`)
+                .map((res: Response) => res.json());
+  }
+
+  getRepositorys(url) {
+    return this.http
+                .get(`${url}`)
+                .map((res: Response) => res.json());
+
+  }
+
+  getRepositoryDescription(url) {
+    return this.http
+                .get(`${url}`)
+                .map((res: Response) => res.json());
+  }
+}
+
+---
+
+//repository-list/repository-list.html
+
+
+<mat-card id="repositorys" *ngIf="repositorys.length > 0">
+  <button (click)="orderByStars()" mat-button> Order by stars </button>
+  <mat-nav-list>
+    <mat-list-item *ngFor="let repository of repositorys">
+      <a matLine>  {{repository?.name}}</a>
+        <span class="fa fa-star checked star-icon"></span>
+        <p class="star-count">{{repository?.stargazers_count}}</p>
+    </mat-list-item>
+  </mat-nav-list>
+</mat-card>
+
+--
+
+//repository-list/repository-list.component.ts
+
+import { Component, Input } from '@angular/core';
+
+import { Utils } from '../../utils/utils.service';
+
+@Component({
+    moduleId: module.id,
+    selector: 'app-repository-list',
+    styleUrls: ['../../app.component.css'],
+    templateUrl: './repository-list.component.html'
+})
+export class RepositoryListComponent {
+    constructor(private utils: Utils) {
+
+    }
+    @Input() repositorys;
+
+  private orderByStars () {
+
+    this.repositorys = this.utils.getOrderOfArraysFromObject(this.repositorys, 'stargazers_count');
+  }
+}
+
+---
+
+
+//repository-list/repository-list.module.ts
+
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+// import { RouterModule, Routes } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatListModule } from '@angular/material/list';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+
+import { RepositoryListComponent } from './repository-list.component';
+import { Utils } from '../../utils/utils.service';
+
+@NgModule({
+  declarations: [ RepositoryListComponent ],
+  imports: [
+    CommonModule,
+    MatFormFieldModule,
+    MatListModule,
+    BrowserModule,
+    MatCardModule,
+    MatInputModule,
+    MatButtonModule,
+    // RouterModule
+  ],
+  exports: [ RepositoryListComponent ],
+  providers: [ Utils ],
+  schemas: [ ]
+})
+
+export class RepositoryListModule { }
+
+
+---
+
+//repository-detail.module.ts
+
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+
+import { RepositoryDetailComponent } from './repository-detail.component';
+@NgModule({
+  imports: [
+    BrowserModule,
+    RepositoryDetailComponent
+  ],
+  declarations: [ ]
+})
+export class RepositoryDetailModule {
+
+}
+
+
+--
+
+//repository-detail.component.ts
+
+import { Component } from '@angular/core';
+
+@Component({
+  moduleId: module.id,
+  selector: 'app-repository-detail',
+  templateUrl: './repository-detail'
+})
+
+export class RepositoryDetailComponent {
+  constructor() {
+
+  }
+}
+
+
+//perfil-presentation.module.ts
+
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+
+import { PerfilPresentationComponent } from './perfil-presentation.component';
+
+@NgModule({
+  declarations: [ PerfilPresentationComponent ],
+  imports: [  CommonModule,
+              MatCardModule
+  ],
+  exports: [ PerfilPresentationComponent ],
+  providers: [ ],
+  schemas: [ ]
+})
+
+export class PerfilPresentarionModule {
+  constructor() { }
+}
+
+//perfil-presentation.html
+
+<article *ngIf="user">
+  <mat-card>
+    <p>
+      <span><img  class="photo-space radius-2"
+                  alt="{{user?.name}} avatar"
+                  [src]="user.avatar_url != null ? user?.avatar_url : dummyImg">
+      </span>
+      <span class="profile-name m-t-15-b-10"> {{user?.login}}</span>
+      <span> {{user?.email}}</span>
+      <span> _followers: {{user?.followers}}</span>
+      <span> _following: {{user?.following}}</span>
+      <span class="bio"> {{user?.bio}}</span>
+    </p>
+  </mat-card>
+</article>
+
+
+-
+
+
+//perfil-presentation.component.ts
+
+import { Component, Input } from '@angular/core';
+
+@Component({
+  moduleId: module.id,
+  selector: 'app-perfil-presentation',
+  styleUrls: ['../../app.component.css'],
+  templateUrl: './perfil-presentation.html'
+})
+
+export class PerfilPresentationComponent {
+  constructor() {
+    console.log('chegou presentation');
+  }
+  @Input() user;
+}
+
+
+-
+
+
+//header.module.ts
+
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { CommonModule } from '@angular/common';
+
+import { HeaderComponent } from './header.component';
+
+@NgModule({
+  declarations: [ HeaderComponent ],
+  imports: [ MatToolbarModule ],
+  exports: [ HeaderComponent ],
+  providers: [],
+  schemas: [ CUSTOM_ELEMENTS_SCHEMA ]
+})
+
+export class HeaderModule {
+  constructor() { }
+}
+
+
+-
+
+
+//header.html
+
+<mat-toolbar class="mat-toolbar mat-primary">
+  <img class="git-hub-img-width" [src]="logoImg" alt="logo">
+  <p class="m-l-15">Concrete Hub</p>
+</mat-toolbar>
+
+
+//header.component.ts
+
+import { Component } from '@angular/core';
+
+@Component({
+  moduleId: module.id,
+  selector: 'app-header',
+  templateUrl: './header.html',
+  styleUrls: ['../../app.component.css']
+})
+export class HeaderComponent {
+  constructor() {}
+
+  logoImg: String = 'https://material.angular.io/assets/img/homepage/github-circle-white-transparent.svg';
+}
+
+
+//index.html
+
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Concrete Test</title>
+  <meta charset="utf-8">
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./assets/font-awesome-4.7.0/css/font-awesome.min.css">
+</head>
+<body class="black">
+  <app-root></app-root>
+</body>
+</html>
+
+<style>
+  .black{
+    background-color: rgb(26, 25, 25);
+  }
+</style>
+
+
+//styles.scss
+
+/* You can add global styles to this file, and also import other style files */
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+//package.json
+
+{
+  "name": "teste-concrete",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test",
+    "lint": "ng lint",
+    "e2e": "ng e2e"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^4.2.4",
+    "@angular/cdk": "^2.0.0-beta.12",
+    "@angular/common": "^4.2.4",
+    "@angular/compiler": "^4.2.4",
+    "@angular/core": "^4.2.4",
+    "@angular/forms": "^4.2.4",
+    "@angular/http": "^4.2.4",
+    "@angular/material": "^2.0.0-beta.12",
+    "@angular/platform-browser": "^4.2.4",
+    "@angular/platform-browser-dynamic": "^4.2.4",
+    "@angular/router": "^4.2.4",
+    "core-js": "^2.4.1",
+    "rxjs": "^5.4.2",
+    "zone.js": "^0.8.14"
+  },
+  "devDependencies": {
+    "@angular/cli": "1.3.2",
+    "@angular/compiler-cli": "^4.2.4",
+    "@angular/language-service": "^4.2.4",
+    "@types/jasmine": "~2.5.53",
+    "@types/jasminewd2": "~2.0.2",
+    "@types/node": "~6.0.60",
+    "codelyzer": "~3.1.1",
+    "jasmine-core": "~2.6.2",
+    "jasmine-spec-reporter": "~4.1.0",
+    "karma": "~1.7.0",
+    "karma-chrome-launcher": "~2.1.1",
+    "karma-cli": "~1.0.1",
+    "karma-coverage-istanbul-reporter": "^1.2.1",
+    "karma-jasmine": "~1.1.0",
+    "karma-jasmine-html-reporter": "^0.2.2",
+    "protractor": "~5.1.2",
+    "ts-node": "~3.2.0",
+    "tslint": "~5.3.2",
+    "typescript": "~2.3.3"
+  }
+}
