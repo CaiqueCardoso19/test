@@ -65,7 +65,7 @@ _______________________________
         - git -help
         - git merge
         - git reflog - lista os HEADs
-        - git rever HEAD@{n} - reverte o commit
+        - git revert HEAD@{n} - reverte o commit
         - git blame [ CAGUETA ]
 
     [ DEFAULT ]
