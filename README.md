@@ -34,8 +34,7 @@ luxavfe | Lucas Xavier Ferreira | 987288538 | 23/01/2018
 _______________________________
 
 **[ TEORIA ]**
-- O que é git?
-- Para que serve o git?
+- O que é, e para que serve o git?
 - Quem criou e por qual motivo?
 - Diferença entre SVN e DISTRIBUIDO?
 - Links úteis:
